@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  phone         String
+  role          UserRole  @default(CONSUMER)
+  nameTagUrl    String?   // URL foto name tag untuk dealer
+  dealerBrand   String?   // Brand dealer (Toyota, Honda, Suzuki, dll)
+  isVerified    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  cars          Car[]
+}
+
+enum UserRole {
+  CONSUMER
+  DEALER_OFFICIAL
+  DEALER_SEMI
+}
+
+model Car {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Informasi Dasar Mobil
+  name            String
+  brand           String
+  model           String
+  year            Int
+  description     String      @default("")
+  
+  // Status Mobil
+  condition       CarCondition // BEKAS atau BARU
+  price           Float
+  
+  // Lokasi
+  address         String
+  city            String
+  province        String
+  
+  // Detail Kendaraan
+  mileage         Int?        // Kilometer
+  transmission    String      // Manual/Automatic
+  fuelType        String      // Bensin/Diesel/Hybrid/Electric
+  color           String
+  
+  // Status Pajak & Dokumen
+  taxStatus       TaxStatus   // AKTIF atau TIDAK_AKTIF
+  taxYear         Int?        // Tahun pajak terakhir
+  stnkStatus      String?     // Status STNK
+  
+  // Gambar (6 foto wajib)
+  images          CarImage[]
+  
+  // Metadata
+  views           Int         @default(0)
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+enum CarCondition {
+  BEKAS
+  BARU
+}
+
+enum TaxStatus {
+  AKTIF
+  TIDAK_AKTIF
+}
+
+model CarImage {
+  id          String      @id @default(cuid())
+  carId       String
+  car         Car         @relation(fields: [carId], references: [id], onDelete: Cascade)
+  url         String
+  position    ImagePosition
+  createdAt   DateTime    @default(now())
+}
+
+enum ImagePosition {
+  DEPAN
+  SAMPING_KIRI
+  SAMPING_KANAN
+  BELAKANG
+  DALAM
+  DASHBOARD
+}
